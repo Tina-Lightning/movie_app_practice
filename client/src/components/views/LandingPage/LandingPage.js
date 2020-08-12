@@ -1,42 +1,78 @@
 import React, { useEffect, useState } from 'react'
 import { FaCode } from "react-icons/fa";
-import { API_URL, API_KEY } from "../../Config"
-
-import { Typography } from "antd";
+import { API_URL, API_KEY, IMAGE_URL } from "../../Config"
+import { Typography, Row } from "antd";
+import MainImage from './Sections/MainImage';
+import GridCard from "./Sections/GridCard";
 const { Title } = Typography;
 
 //import { response } from 'express';
 
 function LandingPage() {
 
-    //const [state, setState] useState(initialState)
+    const [Movies, setMovies] = useState([])
+    const [CurrentPage, setCurrentPage] = useState(0)
 
     useEffect(() => {
+        const endpoint = `${API_URL}movie/popular?api_key=${API_KEY}&language=en-US&page=1`
+        fetchMovies(endpoint)
 
-        fetch(`${API_URL}movie/popular?api_key=${API_KEY}&language=en-US&page=1`)
+    }, [])
+
+    const fetchMovies = (path) => {
+        fetch(path)
         .then(response => response.json())
         .then(response => {
             console.log(response);
+            setMovies([...Movies, ...response.results])
+            setCurrentPage(response.page)
         })
-    }, [])
+    }
+
+    const handleClick = () => {
+        const endpoint = `${API_URL}movie/popular?api_key=${API_KEY}&language=en-US&page=${CurrentPage + 1}`;
+        fetchMovies(endpoint);
+    }
 
     return (
-        <div style={{width:"100%", margin: 0}}>
-            <div style={{
-                background: `linear-gradient(to bottom, rgba(0,0,0,0) 39%, rgba(0,0,0,0) 41%, rgba(0,0,0,0.65) 100%), url(""), #1c1c1c`, height: "500px",
-                backgroundSize: "100%, cover",
-                backgroundPosition: "center, center",
-                width: "100%",
-                position: "relative" }}> 
-                </div>
-                <div>
-                    <div style={{ position:"absolute", maxWidth:"500px", bottom:"2rem", marginLeft:"2rem" }}>
-                        <Title style={{ color: "white" }} level={2}>
-                            Title
+        <div style={{ width: "100%", margin: 0 }}>
+
+            {/* MOVIE MAIN IMAGE  */}
+
+            {Movies[0] &&
+                <MainImage image={`${IMAGE_URL}w1280${Movies[0].backdrop_path && Movies[0].backdrop_path}`} title={Movies[0].original_title} text={Movies[0].overview} />
+            }
+
+            {/* BODY  */}
+
+            <div style={{ width: "85%", margin: "1rem auto" }}>
+                <Title level={2}>
+                    Movies by latest
                         </Title>
-                        <p style={{ color: "white", fontSize: "1rem"}}> text </p>
-                    </div>
+                <hr />
+
+            {/* GRID CARDS */}
+
+                <Row gutter={[16, 16]}>
+                    {Movies && Movies.map((movie, index) => (
+                        <React.Fragment key={index}>
+                            <GridCard
+                                image={movie.poster_path && `${IMAGE_URL}w500${movie.poster_path}`}
+                                movieId={movie.id}
+                            />
+                        </React.Fragment>
+                    ))}
+                </Row>
+
+                {/* LOAD MORE BUTTON  */}
+
+                <br />
+                <div style={{ display: "flex", justifyContent: "center" }}>
+                    <button onClick={handleClick}>Load More</button>
                 </div>
+
+            </div>
+
         </div>
     )
 }
