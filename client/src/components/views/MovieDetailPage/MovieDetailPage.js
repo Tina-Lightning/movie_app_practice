@@ -8,6 +8,7 @@ function MovieDetailPage(props) {
 
     const [Movie, setMovie] = useState([])
     const [Crews, setCrews] = useState([])
+    const [ActorToggle, setActorToggle] = useState(false)
 
     useEffect(() => {
         const movieId = props.match.params.movieId
@@ -18,18 +19,22 @@ function MovieDetailPage(props) {
                 setMovie(response)
 
                 fetch(`${API_URL}movie/${movieId}/credits?api_key=${API_KEY}`)
-                .then(response => response.json())
-                .then(response => {
-                    console.log(response)
-                    setCrews(response)
-                })
+                    .then(response => response.json())
+                    .then(response => {
+                        console.log(response)
+                        setCrews(response.cast)
+                    })
             })
     }, [])
+
+    const handleClick = () => {
+        setActorToggle(!ActorToggle)
+    }
 
     return (
         <div>
             {/* MOVIE MAIN IMAGE  */}
-            {Movie  &&
+            {Movie &&
                 <MainImage image={`${IMAGE_URL}w1280${Movie.backdrop_path && Movie.backdrop_path}`} title={Movie.original_title} text={Movie.overview} />
             }
 
@@ -39,7 +44,7 @@ function MovieDetailPage(props) {
                 <div style={{ display: "flex", justifyContent: "flex-end" }}>
                     <Button>Add to Favorite</Button>
                 </div>
-                
+
 
                 {/* Movie Info Table */}
                 <Descriptions title="Movie Info" bordered>
@@ -54,21 +59,24 @@ function MovieDetailPage(props) {
                 </Descriptions>
 
                 <div style={{ display: "flex", justifyContent: "center" }}>
-                    <Button>Toggle Actor View</Button>
+                    <Button onClick={handleClick} >Toggle Actor View</Button>
                 </div>
 
-                {/* GRID CARDS FROM THE CREW*/}
+                {/* GRID CARDS FOR THE CAST*/}
 
-                <Row gutter={[16, 16]}>
-                    {Crews && Crews.map((crew, index) => (
-                        <React.Fragment key={index}>
-                            <GridCard
-                            actor
-                            />
-                        </React.Fragment>
-                    ))}
-                </Row>
-
+                {ActorToggle &&
+                    <Row gutter={[16, 16]}>
+                        {Crews && Crews.map((crew, index) => (
+                            <React.Fragment key={index}>
+                                {crew.profile_path &&
+                                    <GridCard
+                                        actor image={`${IMAGE_URL}w500${crew.profile_path}`}
+                                    />
+                                }
+                            </React.Fragment>
+                        ))}
+                    </Row>
+                }
 
             </div>
 
